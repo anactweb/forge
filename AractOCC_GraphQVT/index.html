@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="dist/css/d3-mitch-tree.min.css" />
+    <link
+      rel="stylesheet"
+      href="dist/css/d3-mitch-tree-theme-default.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap"
+      rel="stylesheet"
+    />
+    <title>Aract Occitanie</title>
+    <script src="dist/js/d3-mitch-tree.min.js"></script>
+    <script src="data.js"></script>
+
+    <style>
+      body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+      }
+      #container-element {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .d3plus-textBox text {
+        font-family: 'Open Sans', sans-serif !important;
+      }
+
+      #modal-content {
+        font-family: sans-serif;
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .svg-container {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%;
+        vertical-align: top;
+        overflow: hidden;
+      }
+      .svg-content-responsive {
+        display: inline-block;
+        position: absolute;
+        top: 10px;
+        left: 0;
+      }
+
+      .mitch-d3-tree.boxed-tree.default .node.collapsed .body-group .body-box {
+        fill: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="myModal" class="modal">
+      <div id="modal-content">
+        <span class="close">&times;</span>
+        <h1 id="modal-title">Title in the modal</h1>
+        <p id="modal-text-content">Some text in the Modal..</p>
+      </div>
+    </div>
+    <div id="container-element"></div>
+
+    <script>
+      var nodeSelected = null;
+
+      var treePlugin = new d3.mitchTree.boxedTree()
+        .setIsFlatData(true)
+        .setData(data)
+        .getNodeSettings()
+        .setSizingMode('nodesize')
+        .setVerticalSpacing(100)
+        .setHorizontalSpacing(100)
+        .back()
+        .setElement(document.getElementById('container-element'))
+        .setIdAccessor(function (data) {
+          return data.id;
+        })
+        .setParentIdAccessor(function (data) {
+          return data.parentId;
+        })
+        .setBodyDisplayTextAccessor(function (data) {
+          return data.description;
+        })
+        .setTitleDisplayTextAccessor(function (data) {
+          return data.name;
+        })
+        .on('nodeClick', function (event) {
+          if (nodeSelected === event) {
+            onClickNode(event.data);
+          } else {
+            nodeSelected = event;
+          }
+        })
+        .initialize();
+
+      treePlugin.nodeSettings.setTitleBoxWidth(250);
+      treePlugin.initialize();
+
+      function changeTranslateTitle() {
+        var titleGroups = document.getElementsByClassName('title-group');
+
+        for (titleGroup of titleGroups) {
+          translateValue = titleGroup.getAttribute('transform');
+          var newTranslateValue =
+            translateValue.substring(0, translateValue.indexOf('(') + 1) +
+            '-25' +
+            translateValue.substring(translateValue.indexOf(','));
+          titleGroup.setAttribute('transform', newTranslateValue);
+        }
+      }
+
+      function changeTranslateEmpty() {
+        var titleGroups = document.getElementsByClassName('title-group');
+
+        for (titleGroup of titleGroups) {
+          if (
+            titleGroup.getElementsByTagName('text')[0].textContent ===
+              `Acteurs et ressources QVT en` ||
+            titleGroup.getElementsByTagName('text')[0].textContent ===
+              `Secteur privé` ||
+            titleGroup.getElementsByTagName('text')[0].textContent ===
+              `Secteur public`
+          ) {
+            if (titleGroup.parentNode.getElementsByClassName('body-group')[0]) {
+              titleGroup.parentNode
+                .getElementsByClassName('body-group')[0]
+                .remove();
+              titleGroup.style.transform = 'translateY(-20px)';
+            }
+          }
+        }
+      }
+      changeTranslateEmpty();
+      changeTranslateTitle();
+
+      document
+        .getElementById('container-element')
+        .addEventListener('click', onClickContainer);
+
+      function changeColorTitle() {
+        titleGroups = document.getElementsByClassName('title-group');
+
+        for (titleGroup of titleGroups) {
+          idNode = titleGroup.childNodes[1].id.split('-')[2];
+          titleGroup.childNodes[0].style.fill = getNodeColor(idNode - 1);
+        }
+      }
+
+      changeColorTitle();
+
+      function getNodeColor(idNode) {
+        if (!data[idNode].color) {
+          return getNodeColor(data[idNode].parentId - 1);
+        } else {
+          return data[idNode].color;
+        }
+      }
+
+      function onClickContainer() {
+        selectedNode = document.getElementsByClassName('selected')[0];
+        selectedNode.setAttribute('style', 'pointer-events: bounding-box;');
+        changeTranslateTitle();
+        changeColorTitle();
+        changeTranslateEmpty();
+      }
+
+      function onClickNode(nodeData) {
+        if (nodeData.description) {
+          modal.style.display = 'block';
+          modalTxt.innerHTML = linkify(
+            nodeData.description.replace(/\n\r?/g, '<br />')
+          );
+          modalTitle.innerHTML = nodeData.name;
+          modalContent.style.border = '5px solid ' + getNodeColor(idNode - 1);
+        }
+      }
+
+      function linkify(inputText) {
+        var replacedText, replacePattern1, replacePattern2, replacePattern3;
+
+        replacePattern1 =
+          /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+        replacedText = inputText.replace(
+          replacePattern1,
+          '<a href="$1" target="_blank">$1</a>'
+        );
+
+        replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+        replacedText = replacedText.replace(
+          replacePattern2,
+          '$1<a href="http://$2" target="_blank">$2</a>'
+        );
+
+        replacePattern3 =
+          /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
+        replacedText = replacedText.replace(
+          replacePattern3,
+          '<a href="mailto:$1">$1</a>'
+        );
+
+        return replacedText;
+      }
+    </script>
+    <script>
+      var modal = document.getElementById('myModal');
+      var modalContent = document.getElementById('modal-content');
+      var modalTxt = document.getElementById('modal-text-content');
+      var modalTitle = document.getElementById('modal-title');
+
+      var span = document.getElementsByClassName('close')[0];
+
+      span.onclick = function () {
+        modal.style.display = 'none';
+      };
+
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      };
+    </script>
+  </body>
+</html>

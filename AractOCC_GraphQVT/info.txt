@@ -1,0 +1,69 @@
+###### Fichiers nécessaires ######
+
+│   data.js
+│   index.html
+│       
+└───dist
+    ├───css
+    │       d3-mitch-tree-theme-default.min.css    
+    │       d3-mitch-tree.min.css
+    │       
+    └───js
+            d3-mitch-tree.min.js
+
+###### Utilisation ######
+
+Exécuter le fichier index.html dans un navigateur internet ou copier l'intégralité des fichiers nécessaires sur un serveur web
+
+###### Modification du contenu ######
+
+Seul le fichier data.js peut être modifié. Cette modification doit être effectuée par une personne avertie. Une erreur peut entrainer un dysfonctionnement du programme.
+
+- Faire une sauvegarde du fichier data.js sur une clé USB afin de pouvoir le restaurer en cas de problème
+- Ouvrir le fichier data.js avec un éditeur de fichier texte simple (exemple : bloc-notes/notepad) (contre-exemple : Word)
+
+### Modification ###
+
+- Chercher le texte à modifier
+- Modifier uniquement le contenu entre les ` ... `
+- Sauvegarder le fichier
+
+### Supression ###
+
+- Chercher le noeud à supprimer
+Un noeud est toujours sous la forme { ... }, (où les ... sont le contenu, attention la virgule à la fin est INDISPENSABLE)
+- Sélectionner le noeud à supprimer (de l'accolade ouvrante jusqu'à la virgule) et supprimer le bloc de code
+- Sauvegarder le fichier
+
+### Ajout ###
+
+- Copier l'intégralité du dernier noeud et le coller après la dernière virgule du document
+Exemple :
+AVANT
+...
+  {
+    id: 132,
+    ...
+  },
+];
+APRÈS
+...
+  {
+    id: 132,
+    ...
+  },
+  {
+    id: 132,
+    ...
+  },
+];
+
+- Ajouter 1 à l'id (ici le dernier noeud devrait avoir un id: 133)
+- Modifier ce qui se trouve entre les ` ... ` de name (le titre du noeud) et description (le contenu du noeud)
+- Enfin, renseigner le bon identifiant du noeud parent (parentId)
+Exemple :
+Pour ajouter un noeud dans la catégorie : `Relations au travail, climat social`
+Le parentId devra être positionné à 3 (car c'est l'id du noeud de la catégorie parent)
+Pour ajouter un noeud dans la catégorie `Secteur privé` de `Relations au travail, climat social`
+Le parentId devra être positionné à 11 (car c'est l'id du noeud `Secteur privé` ayant comme parentId l'id du noeud `Relations au travail, climat social`)
+- Sauvegarder le fichier
